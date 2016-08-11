@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/nomad/nomad"
 	"github.com/hashicorp/nomad/nomad/structs"
 	"github.com/mitchellh/hashstructure"
+	"github.com/shirou/gopsutil/host"
 )
 
 const (
@@ -485,15 +486,26 @@ func (c *Client) getAllocRunners() map[string]*AllocRunner {
 	return runners
 }
 
-// nodeID restores a persistent unique ID or generates a new one
+// nodeID restores a persistent unique ID or generates a new one if the host
+// does not present a durable unique ID.
 func (c *Client) nodeID() (string, error) {
+	var hostID string
+	hostInfo, err := host.Info()
+	if err == nil && hostInfo.HostID != "" {
+		hostID = hostInfo.HostID
+	} else {
+		// Generate a random hostID if no constant ID is available on
+		// this platform.
+		hostID = structs.GenerateUUID()
+	}
+
 	// Do not persist in dev mode
 	if c.config.DevMode {
-		return structs.GenerateUUID(), nil
+		return hostID, nil
 	}
 
 	// Attempt to read existing ID
-	path := filepath.Join(c.config.StateDir, "client-id")
+	path := filepath.Join(c.config.StateDir, "node-id")
 	buf, err := ioutil.ReadFile(path)
 	if err != nil && !os.IsNotExist(err) {
 		return "", err
@@ -504,14 +516,11 @@ func (c *Client) nodeID() (string, error) {
 		return string(buf), nil
 	}
 
-	// Generate new ID
-	id := structs.GenerateUUID()
-
 	// Persist the ID
-	if err := ioutil.WriteFile(path, []byte(id), 0700); err != nil {
+	if err := ioutil.WriteFile(path, []byte(hostID), 0700); err != nil {
 		return "", err
 	}
-	return id, nil
+	return hostID, nil
 }
 
 // setupNode is used to setup the initial node
@@ -521,7 +530,7 @@ func (c *Client) setupNode() error {
 		node = &structs.Node{}
 		c.config.Node = node
 	}
-	// Generate an iD for the node
+	// Generate an ID for the node
 	var err error
 	node.ID, err = c.nodeID()
 	if err != nil {
