@@ -757,11 +757,11 @@
 			"revisionTime": "2016-06-17T08:26:08Z"
 		},
 		{
-			"checksumSHA1": "+m5V0QobB9gklJkz+zk0NvaSeOs=",
+			"checksumSHA1": "QBFpNvR0Z1r1ojPBgn6b8/PTbm0=",
 			"comment": "1.0.0-230-gf58654f",
 			"path": "github.com/shirou/gopsutil/process",
-			"revision": "5c1bfed85550640833e8bbf50156d114ba99fbf2",
-			"revisionTime": "2016-06-17T08:26:08Z"
+			"revision": "1cc18d94d9b5c2a6171c8e3315b368ad80de1af3",
+			"revisionTime": "2016-08-11T14:52:12Z"
 		},
 		{
 			"path": "github.com/shirou/w32",
